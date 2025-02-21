@@ -1,3 +1,42 @@
+# Function to read environment variables from a file
+function Set-EnvVariablesFromFile {
+  param (
+      [string]$filePath
+  )
+
+  if (Test-Path $filePath) {
+      $content = Get-Content $filePath
+      foreach ($line in $content) {
+          if ($line -match '^\s*([^=]+)\s*=\s*"(.*)"\s*$') {
+              $name = $matches[1].Trim()
+              $value = $matches[2].Trim()
+              Set-Item -Path "Env:$name" -Value $value
+          }
+      }
+  } else {
+      throw "File not found: $filePath"
+  }
+}
+
+# Function to clear environment variables from a file
+function Clear-EnvVariablesFromFile {
+  param (
+      [string]$filePath
+  )
+
+  if (Test-Path $filePath) {
+      $content = Get-Content $filePath
+      foreach ($line in $content) {
+          if ($line -match '^\s*([^=]+)\s*=\s*"(.*)"\s*$') {
+              $name = $matches[1].Trim()
+              Remove-Item Env:$name
+          }
+      }
+  } else {
+      throw "File not found: $filePath"
+  }
+}
+
 function Invoke-TerraformInitAndPlan {
   [CmdletBinding()]
   param (
@@ -188,4 +227,4 @@ function Invoke-PesterTests {
   Pop-Location
 }
 
-Export-ModuleMember -Function Invoke-TerraformInitAndPlan, Invoke-PesterTests
+Export-ModuleMember -Function Set-EnvVariablesFromFile, Clear-EnvVariablesFromFile, Invoke-TerraformInitAndPlan, Invoke-PesterTests

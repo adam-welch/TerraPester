@@ -7,7 +7,7 @@
   Description = 'A module for running Terraform and Pester tests.'
   PowerShellVersion = '5.1'
   CompatiblePSEditions = @('Core', 'Desktop')
-  FunctionsToExport = @('Invoke-TerraformInitAndPlan', 'Invoke-PesterTests')
+  FunctionsToExport = @('Set-EnvVariablesFromFile', 'Clear-EnvVariablesFromFile','Invoke-TerraformInitAndPlan', 'Invoke-PesterTests')
   CmdletsToExport = @()
   VariablesToExport = @()
   AliasesToExport = @()
