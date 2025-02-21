@@ -23,7 +23,7 @@ function Invoke-TerraformInitAndPlan {
   {
     $jsonFile = "tfplan.json"
   }
-  
+
   if([string]::IsNullOrEmpty($TerraformOptions.TerraformDir)){
     throw "Terraform Directory not supplied!"
   }
@@ -37,7 +37,7 @@ function Invoke-TerraformInitAndPlan {
     if(-not(Test-Path $terraformPath)){
       throw "Unable to find terraform directory: '$($TerraformOptions.TerraformDir)'."
     }
-  }  
+  }
 
 
   # if(-not (Test-Path -Path $TerraformOptions.TerraformDir -PathType Container))
@@ -69,7 +69,7 @@ function Invoke-TerraformInitAndPlan {
     }
 
     # appends any var-file args
-    if($TerraformOptions.VarFiles.Length -gt 0) {      
+    if($TerraformOptions.VarFiles.Length -gt 0) {
       foreach ($val in $TerraformOptions.VarFiles) {
 
         $varFilePath = Resolve-Path $val -ErrorAction SilentlyContinue
@@ -81,13 +81,13 @@ function Invoke-TerraformInitAndPlan {
           if(-not(Test-Path $varFilePath)){
             throw "Unable to find terraform directory: '$val'."
           }
-        }  
+        }
 
         $terraformCommand += " -var-file=`"$varFilePath`""
       }
     }
 
-    Invoke-Expression $terraformCommand    
+    Invoke-Expression $terraformCommand
 
     if ($LASTEXITCODE -ne 0) {
       Write-Error "Terraform plan failed."
@@ -95,26 +95,26 @@ function Invoke-TerraformInitAndPlan {
 
     #### Convert plan file to json ####
     $jsonFilePath = Join-Path (Get-Location) $jsonFile
-    $terraformCommand = "terraform -chdir=`"{0}`" show -json `"$planFile`""  -f (Get-Location)         
+    $terraformCommand = "terraform -chdir=`"{0}`" show -json `"$planFile`""  -f (Get-Location)
     Invoke-Expression $terraformCommand | Out-File -FilePath $jsonFilePath
     if ($LASTEXITCODE -ne 0) {
       Write-Error "Converting plan to json failed."
     }
-  } 
-  catch 
+  }
+  catch
   {
     if ($Error.Count -gt 0) {
       Write-Output $Error[0].ToString()
     }
   }
-  Pop-Location 
+  Pop-Location
 }
 
 function Invoke-PesterTests {
 
   Param(
     [Parameter(Mandatory=$true)]
-    [object]$TerraformOptions,    
+    [object]$TerraformOptions,
     [Parameter(Mandatory = $true)]
     [string] $TestFixtures,
     [string] $BasePath = $null
@@ -129,7 +129,7 @@ function Invoke-PesterTests {
   $fixturesPath = Resolve-Path $TestFixtures -ErrorAction SilentlyContinue
   # Check if fullpath was specified by resolving the path and testing it exists
   if(-not(Test-Path $fixturesPath -ErrorAction SilentlyContinue)){
-    
+
     # the resolved path doesn't exist so try resolving relative to the path of the calling script
     $fixturesPath = Resolve-Path $TestFixtures -RelativeBasePath $scriptBase -ErrorAction SilentlyContinue
     if(-not(Test-Path $fixturesPath)){
@@ -142,21 +142,26 @@ function Invoke-PesterTests {
   Set-Location $scriptBase
 
   try {
-    
+
     # Check that Pester module is imported
     if (-not (Get-Module "Pester")) {
       Import-Module Pester
     }
-  
+
     # Run the plan
-    # Note, as running from a module the path of the calling script is used for the BasePath.. 
+    # Note, as running from a module the path of the calling script is used for the BasePath..
     # if executing the function direct this wouldn't be necessary as it would use the $MyInvocation.PSScriptRoot as the BasePath
     Invoke-TerraformInitAndPlan -TerraformOptions $TerraformOptions -BasePath $scriptBase
 
-    # 
+    #
     $configuration = [PesterConfiguration] @{
       Run    = @{ Path = $fixturesPath; PassThru = $true }
       Output = @{ Verbosity = "Detailed"; RenderMode = "Plaintext" }
+      TestResult = @{
+        Enabled = $true
+        OutputFormat = 'NUnitXml'
+        OutputPath = "$scriptBase\TestResults.xml"
+      }
     }
 
     # Switch ErrorActionPreference to Stop temporary to make sure that tests will fail on silent errors too
@@ -164,7 +169,7 @@ function Invoke-PesterTests {
     $ErrorActionPreference = "Stop"
     $results = Invoke-Pester -Configuration $configuration
     $ErrorActionPreference = $backupErrorActionPreference
-    
+
     # Fail in case if no tests are run
     if (-not ($results -and ($results.FailedCount -eq 0) -and (($results.PassedCount + $results.SkippedCount) -gt 0))) {
       $results
@@ -176,7 +181,7 @@ function Invoke-PesterTests {
       Write-Output $Error[0].ToString()
     }
   }
-  Pop-Location 
+  Pop-Location
 }
 
 Export-ModuleMember -Function Invoke-TerraformInitAndPlan, Invoke-PesterTests
