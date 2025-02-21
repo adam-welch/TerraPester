@@ -4,10 +4,10 @@
   Author = 'Adam Welch'
   CompanyName = 'Adam Welch'
   Copyright = 'Copyright (c) 2023 Adam Welch'
-  Description = '.'
+  Description = 'A module for running Terraform and Pester tests.'
   PowerShellVersion = '5.1'
-  CompatiblePSEditions = 'Core', 'Desktop'
-  FunctionsToExport = @('*')
+  CompatiblePSEditions = @('Core', 'Desktop')
+  FunctionsToExport = @('Invoke-TerraformInitAndPlan', 'Invoke-PesterTests')
   CmdletsToExport = @()
   VariablesToExport = @()
   AliasesToExport = @()

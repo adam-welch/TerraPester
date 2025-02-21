@@ -143,10 +143,14 @@ function Invoke-PesterTests {
 
   try {
 
+
     # Check that Pester module is imported
-    if (-not (Get-Module "Pester")) {
-      Import-Module Pester
+    if (-not (Get-Module -Name "Pester" -ListAvailable)) {
+      Write-Output "Pester module not found. Installing Pester module..."
+      Install-Module -Name Pester -Force -Scope CurrentUser
     }
+
+    Import-Module Pester
 
     # Run the plan
     # Note, as running from a module the path of the calling script is used for the BasePath..
